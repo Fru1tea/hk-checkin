@@ -337,7 +337,7 @@
     </div>
     <div class="card field">
       <div class="card-head">☁️ 云备份（自动上传）</div>
-      <input type="password" class="text-input" id="set-gist-token" placeholder="GitHub Token（ghp_ / github_pat_ 开头）" autocomplete="off">
+      <input type="text" class="text-input" id="set-gist-token" placeholder="GitHub Token（ghp_ / github_pat_ 开头）" autocomplete="off" autocapitalize="off" spellcheck="false" style="-webkit-text-security:disc">
       <input type="text" class="text-input" id="set-gist-id" placeholder="Gist ID（首次保存后自动生成）" autocomplete="off">
       <p class="hint" id="cloud-status">未配置。配置后，每次打卡会自动备份到你自己的 GitHub 秘密 Gist（仅自己可见），换手机或误删可一键恢复。</p>
       <div class="loc-btns">
@@ -521,7 +521,6 @@
   function countBetween(from, to) {
     var n = 0;
     for (var i = 0; i < records.length; i++) {
-      if (records[i].type === 'out') continue;
       if (records[i].date >= from && records[i].date <= to) n++;
     }
     return n;
@@ -547,8 +546,8 @@
     return y + '-' + pad(mo + 1) + '-' + pad(d);
   }
 
-  function addRecord(date, port, note, type) {
-    records.push({ id: uid(), date: date, port: port || '', note: note || '', type: type === 'out' ? 'out' : 'in' });
+  function addRecord(date, port, note) {
+    records.push({ id: uid(), date: date, port: port || '', note: note || '' });
     sortRecords();
     saveRecords();
     renderAll();
@@ -929,7 +928,7 @@
         return true;
       }
       return r.json().catch(function () { return {}; }).then(function (j) {
-        var msg = r.status === 401 ? 'Token 无效或已过期' : r.status === 404 ? '云端 Gist 不存在（可能被删除）' : '备份失败（' + r.status + '）' + (j.message || '');
+        var msg = r.status === 401 ? 'Token 无效、已过期或在 GitHub 上被删除' : r.status === 404 ? '云端 Gist 不存在（可能被删除）' : '备份失败（' + r.status + '）' + (j.message || '');
         settings.lastBackupError = msg;
         saveSettings();
         cloudStatusRender();
@@ -978,7 +977,7 @@
       var id = r.id && !byId[r.id] ? String(r.id) : uid();
       if (byId[id] || byKey[key]) { skipped++; continue; }
       byId[id] = true; byKey[key] = true;
-      records.push({ id: id, date: date, port: String(r.port || ''), note: String(r.note || ''), type: r.type === 'out' ? 'out' : 'in' });
+      records.push({ id: id, date: date, port: String(r.port || ''), note: String(r.note || '') });
       added++;
     }
     if (!settings.periodStart && extraSettings && isValidISO(extraSettings.periodStart)) {
@@ -999,7 +998,9 @@
   function handleGistSetup() {
     var tok = getParam('gistsetup');
     if (!tok) return;
-    settings.gistToken = tok.trim();
+    var mt = tok.match(/gh[pousr]_[A-Za-z0-9]+/);
+    if (mt) tok = mt[0];           // 与手动保存相同的防呆提取
+    settings.gistToken = tok;
     var gid = (getParam('gid') || '').trim();
     if (gid) settings.gistId = gid;
     saveSettings();
@@ -1295,6 +1296,12 @@
 
   /* ---------------- 启动 ---------------- */
   sortRecords();
+  // 旧版本数据迁移：清除已废弃的出入境类型字段，确保所有记录都被统计
+  var migratedType = false;
+  for (var mi = 0; mi < records.length; mi++) {
+    if (records[mi].type) { delete records[mi].type; migratedType = true; }
+  }
+  if (migratedType) { localStorage.setItem(LS_REC, JSON.stringify(records)); }
   renderAll();
   handleAutoParams();
   handleGistSetup();
