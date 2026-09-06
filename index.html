@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>香港入境打卡</title>
+<meta name="description" content="记录四年期间进入香港的次数">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="入境打卡">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#2563eb">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0f1a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  :root {
+    --bg: #f2f4f8;
+    --card: #ffffff;
+    --text: #111827;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #2563eb;
+    --accent-2: #0ea5e9;
+    --danger: #dc2626;
+    --tab-h: 62px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b0f1a;
+      --card: #151c2c;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --line: #26304a;
+      --accent: #3b82f6;
+      --accent-2: #22d3ee;
+      --danger: #f87171;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 16px);
+    user-select: none;
+  }
+  main { max-width: 520px; margin: 0 auto; padding: 16px 16px 0; }
+  .view { display: none; }
+  .view.active { display: block; animation: fadein .18s ease; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  h2 { font-size: 20px; margin: 4px 2px 14px; }
+
+  .card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+
+  /* ---- 首页 ---- */
+  .hero {
+    background: linear-gradient(135deg, #0ea5e9, #2563eb 60%, #1e40af);
+    color: #fff;
+    padding: 22px 20px 20px;
+  }
+  .hero-label { font-size: 14px; opacity: .85; }
+  .hero-num { font-size: 62px; font-weight: 800; line-height: 1.1; margin: 2px 0 2px; font-variant-numeric: tabular-nums; }
+  .hero-num small { font-size: 16px; font-weight: 600; margin-left: 6px; opacity: .9; }
+  .hero-sub { font-size: 13px; opacity: .85; margin-bottom: 14px; }
+  .progress { height: 8px; border-radius: 99px; background: rgba(255,255,255,.25); overflow: hidden; }
+  .progress-bar { height: 100%; width: 0; border-radius: 99px; background: #fff; transition: width .4s ease; }
+  .hero-meta { font-size: 12px; opacity: .85; margin-top: 8px; }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .stat { background: var(--card); border-radius: 16px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .stat .k { font-size: 12px; color: var(--muted); }
+  .stat .v { font-size: 24px; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+  .btn-primary {
+    display: block; width: 100%; border: 0; border-radius: 16px;
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    color: #fff; font-size: 18px; font-weight: 700; padding: 17px;
+    font-family: inherit; cursor: pointer;
+    box-shadow: 0 6px 16px rgba(37,99,235,.35);
+    transition: transform .08s ease;
+  }
+  .btn-primary:active { transform: scale(.97); }
+  .btn-ghost {
+    display: block; width: 100%; border: 0; border-radius: 14px;
+    background: var(--card); color: var(--accent); font-size: 15px; font-weight: 600;
+    padding: 13px; font-family: inherit; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-top: 10px;
+  }
+  .btn-ghost:active { opacity: .7; }
+  .btn-danger {
+    display: block; width: 100%; border: 0; border-radius: 14px;
+    background: transparent; color: var(--danger); font-size: 15px; font-weight: 600;
+    padding: 13px; font-family: inherit; cursor: pointer;
+  }
+  .actions-row { display: flex; gap: 10px; }
+  .hidden { display: none !important; }
+  .backdate-row { display: flex; gap: 10px; margin-top: 10px; align-items: center; }
+  .backdate-row input[type=date] {
+    flex: 1; border: 1px solid var(--line); background: var(--bg); color: var(--text);
+    border-radius: 12px; padding: 11px 12px; font-size: 16px; font-family: inherit;
+  }
+  .btn-small { width: auto; padding: 11px 22px; font-size: 15px; margin: 0; }
+
+  .tip { background: var(--card); border-left: 4px solid #f59e0b; border-radius: 14px; padding: 13px 15px; font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 14px; }
+  .tip b { color: var(--text); }
+  .tip.ok { border-left-color: #10b981; }
+
+  .switch-row { display: flex; align-items: center; justify-content: space-between; font-size: 15px; padding: 8px 0; }
+  .sw { appearance: none; -webkit-appearance: none; width: 46px; height: 28px; border-radius: 99px; background: var(--line); position: relative; transition: .2s; flex: none; cursor: pointer; margin: 0; }
+  .sw:checked { background: #34c759; }
+  .sw::after { content: ''; position: absolute; top: 2px; left: 2px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+  .sw:checked::after { left: 20px; }
+  .loc-btns { display: flex; gap: 10px; margin-top: 10px; }
+  .mini-btn { flex: 1; border: 0; border-radius: 12px; padding: 11px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; background: var(--bg); color: var(--text); }
+  .mini-btn.primary { background: #10b981; color: #fff; }
+  .mini-btn.primary:active { opacity: .85; }
+  .type-select { border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 12px; padding: 11px 10px; font-size: 15px; font-family: inherit; }
+  .type-tag { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 6px; padding: 2px 7px; margin-right: 8px; }
+  .type-tag.in { background: rgba(37,99,235,.12); color: var(--accent); }
+  .type-tag.out { background: rgba(234,88,12,.14); color: #ea580c; }
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 2px; }
+  .chip { border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 12px; padding: 9px 14px; font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; }
+  .chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .cert-hero { background: linear-gradient(135deg, #059669, #0d9488); color: #fff; }
+  .cert-hero .num { font-size: 46px; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .cert-cols { display: flex; gap: 18px; margin: 6px 0 14px; }
+  .cert-cols .k { font-size: 13px; opacity: .85; }
+  .kv { display: flex; justify-content: space-between; font-size: 14px; padding: 9px 2px; border-bottom: 1px solid var(--line); }
+  .kv:last-child { border-bottom: 0; }
+  .kv .k { color: var(--muted); }
+  .kv .v { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sheet select { width: 100%; margin-top: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 12px; padding: 12px; font-size: 16px; font-family: inherit; }
+  .field .text-input {
+    width: 100%; margin-top: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text);
+    border-radius: 12px; padding: 12px; font-size: 15px; font-family: inherit; user-select: text;
+  }
+  .card-head { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+
+  /* ---- 记录页 ---- */
+  .month-title { font-size: 13px; color: var(--muted); margin: 18px 4px 8px; font-weight: 600; }
+  .rec { display: flex; align-items: center; background: var(--card); border-radius: 14px; padding: 13px 16px; margin-bottom: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+  .rec .date { font-size: 17px; font-weight: 700; min-width: 64px; font-variant-numeric: tabular-nums; }
+  .rec .wd { font-size: 12px; color: var(--muted); }
+  .rec .info { flex: 1; margin-left: 6px; }
+  .rec .port { display: inline-block; font-size: 12px; background: rgba(37,99,235,.1); color: var(--accent); border-radius: 6px; padding: 2px 8px; margin-right: 6px; }
+  .rec .note { font-size: 12px; color: var(--muted); }
+  .rec .chev { color: var(--muted); font-size: 18px; }
+  .empty { text-align: center; color: var(--muted); padding: 60px 0; font-size: 14px; line-height: 2; }
+
+  /* ---- 设置页 ---- */
+  .field label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 8px; }
+  .field input[type=date] {
+    width: 100%; border: 1px solid var(--line); background: var(--bg); color: var(--text);
+    border-radius: 12px; padding: 12px; font-size: 16px; font-family: inherit;
+  }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.6; }
+  .about { font-size: 12px; color: var(--muted); line-height: 1.8; padding: 8px 4px; }
+
+  /* ---- 底部标签栏 ---- */
+  .tabbar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    display: flex; justify-content: space-around; align-items: stretch;
+    height: calc(var(--tab-h) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: color-mix(in srgb, var(--card) 88%, transparent);
+    -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+    border-top: 1px solid var(--line);
+  }
+  .tab {
+    flex: 1; border: 0; background: none; font-family: inherit; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    color: var(--muted); font-size: 11px; font-weight: 500;
+  }
+  .tab.active { color: var(--accent); }
+  .tab svg { width: 24px; height: 24px; }
+
+  /* ---- 弹层 ---- */
+  .overlay {
+    position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.45);
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .sheet {
+    width: 100%; max-width: 520px; background: var(--card);
+    border-radius: 22px 22px 0 0; padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    animation: slideup .22s ease;
+  }
+  @keyframes slideup { from { transform: translateY(40%); opacity: .5; } to { transform: none; opacity: 1; } }
+  .sheet h3 { font-size: 17px; margin-bottom: 16px; text-align: center; }
+  .sheet label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+  .sheet input {
+    width: 100%; margin-top: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--text);
+    border-radius: 12px; padding: 12px; font-size: 16px; font-family: inherit;
+  }
+  .modal-actions { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+  .modal-actions .spacer { flex: 1; }
+  .danger-text { border: 0; background: none; color: var(--danger); font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; padding: 10px 4px; }
+  .btn-cancel { width: auto; margin: 0; padding: 11px 20px; color: var(--muted); }
+
+  #toast {
+    position: fixed; left: 50%; bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 24px);
+    transform: translateX(-50%) translateY(20px); z-index: 200;
+    background: rgba(17,24,39,.92); color: #fff; font-size: 14px;
+    padding: 11px 20px; border-radius: 99px; opacity: 0; pointer-events: none;
+    transition: all .25s ease; max-width: 80vw;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<main>
+  <!-- ========== 首页 ========== -->
+  <section id="view-home" class="view active">
+    <div class="card hero">
+      <div class="hero-label">四年周期内入境次数</div>
+      <div class="hero-num"><span id="stat-period">0</span><small>次</small></div>
+      <div class="hero-sub" id="hero-range">—</div>
+      <div class="progress"><div class="progress-bar" id="period-bar"></div></div>
+      <div class="hero-meta" id="period-meta">—</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat"><div class="k">距上次入境</div><div class="v" id="stat-gap">—</div></div>
+      <div class="stat"><div class="k">本月入境</div><div class="v" id="stat-month">0</div></div>
+      <div class="stat"><div class="k">今年入境</div><div class="v" id="stat-year">0</div></div>
+      <div class="stat"><div class="k">近 12 个月</div><div class="v" id="stat-roll">0</div></div>
+    </div>
+
+    <button class="btn-primary" id="btn-today">记录今日入境</button>
+    <button class="btn-ghost" id="btn-toggle-backdate">补记其他日期</button>
+    <div class="backdate-row hidden" id="backdate-row">
+      <input type="date" id="backdate-input">
+      <button class="btn-primary btn-small" id="btn-backdate-add">添加</button>
+    </div>
+    <button class="btn-ghost" id="btn-locate" style="margin-top:10px">📍 定位识别打卡</button>
+
+    <div class="tip ok hidden" id="loc-card">
+      <b id="loc-title"></b> <span id="loc-detail"></span>
+      <div class="loc-btns">
+        <button class="mini-btn primary" id="btn-loc-record">记录今日入境</button>
+        <button class="mini-btn" id="btn-loc-hide">忽略</button>
+      </div>
+    </div>
+
+    <div class="tip hidden" id="tip-wechat">
+      <b>检测到你在微信内打开</b>：微信内网页无法长期保存数据。请点右上角「···」→「在浏览器中打开」（Safari），再按提示添加到主屏幕使用。
+    </div>
+    <div class="tip hidden" id="tip-install">
+      <b>让它变成手机 App</b>：在 Safari 中打开本页 → 点底部「分享」按钮 → 选「添加到主屏幕」。之后从主屏幕图标进入，全屏显示、离线可用，数据长期保存。
+    </div>
+    <div class="tip hidden" id="tip-backup">
+      <b>数据安全</b>：记录默认只保存在本机。强烈建议在「设置 → ☁️ 云备份」配置自动上传（GitHub Gist），换手机或误删也能一键恢复；也可随时手动导出备份文件。
+    </div>
+  </section>
+
+  <!-- ========== 记录 ========== -->
+  <section id="view-log" class="view">
+    <h2>入境记录</h2>
+    <div id="log-list"></div>
+  </section>
+
+  <!-- ========== 中留服时长 ========== -->
+  <section id="view-cert" class="view">
+    <h2>中留服 · 在港时长</h2>
+    <div class="card cert-hero">
+      <div class="cert-cols">
+        <div><div class="k">已在港天数</div><div class="num" id="cert-actual">0</div></div>
+        <div><div class="k">目标需在港</div><div class="num" id="cert-target">—</div></div>
+      </div>
+      <div class="progress"><div class="progress-bar" id="cert-bar"></div></div>
+      <div class="hero-meta" id="cert-status">设置学制后开始计算</div>
+    </div>
+    <div class="card">
+      <div class="kv"><span class="k">学制时间段</span><span class="v" id="cert-range">—</span></div>
+      <div class="kv"><span class="k">学制总天数</span><span class="v" id="cert-total">—</span></div>
+      <div class="kv"><span class="k">已过去天数</span><span class="v" id="cert-elapsed">—</span></div>
+      <div class="kv"><span class="k">按比例此时应在港</span><span class="v" id="cert-required">—</span></div>
+      <div class="kv"><span class="k">与要求相比</span><span class="v" id="cert-ahead">—</span></div>
+      <div class="kv"><span class="k">还需在港天数</span><span class="v" id="cert-remain">—</span></div>
+    </div>
+    <div class="card field">
+      <label for="cert-start">学制开始日期</label>
+      <input type="date" id="cert-start">
+      <div class="chip-label">学制年限（点选自动算出结束日期）</div>
+      <div class="chip-row" id="cert-years">
+        <button class="chip" data-years="1">1 年</button>
+        <button class="chip" data-years="1.5">1.5 年</button>
+        <button class="chip" data-years="2">2 年</button>
+        <button class="chip" data-years="3">3 年</button>
+        <button class="chip" data-years="4">4 年</button>
+      </div>
+      <label for="cert-end" style="margin-top:12px">学制结束日期（可手动微调）</label>
+      <input type="date" id="cert-end">
+      <div class="chip-label">目标在港天数（在港累计达到即达标）</div>
+      <div class="chip-row" id="cert-goals">
+        <button class="chip" data-mode="days" data-v="180">180 天</button>
+        <button class="chip" data-mode="pct" data-v="0.6">学制 60%</button>
+        <button class="chip" data-mode="pct" data-v="0.6667">学制 2/3</button>
+        <button class="chip" data-mode="pct" data-v="0.7">学制 70%</button>
+      </div>
+      <div class="chip-label">自定义目标（学校/中介给你任何数字都能用）</div>
+      <div class="backdate-row" style="margin-top:6px">
+        <input type="number" id="cert-custom" class="type-select" style="flex:1" min="1" placeholder="输入数字">
+        <select class="type-select" id="cert-custom-mode" style="width:auto"><option value="days">天</option><option value="pct">%（占学制）</option></select>
+        <button class="btn-primary btn-small" id="cert-custom-apply">应用</button>
+      </div>
+      <p class="hint" style="margin-top:10px"><b>官方口径（摘自中留服官网，查询于 2026-09-07）</b>：申请认证时需授权中留服通过「移民局 12367」获取学习期间全部出入境记录（记录不完整的须自行补充完整 PDF 或出入境盖章页）；官网<b>未设定固定的在港天数门槛</b>；「学习时间不满足学制要求」的申请人须提供学习期间完整成绩单或研究证明。180 天 / 60% 等数字为民间经验口径，仅供参考。官方入口：<a href="https://zwfwbl.cscse.edu.cn/authenticationCommon/guide" target="_blank" rel="noopener" style="color:var(--accent)">认证指南</a> · <a href="https://zwfw.cscse.edu.cn/zwfw/lxfwzxwsfwdt2020/xlxwrz32/sqcl/ndjm/2026042823583912537/index.html" target="_blank" rel="noopener" style="color:var(--accent)">申请材料原文</a>（若官方给出新的数字，用上面的自定义目标随时更新）</p>
+      <p class="hint">目标默认「180 天」为香港一年制硕士的常见建议值；也可按学制比例估算或自定义。在港天数按记录计算：<b>去过一天就算 1 天</b>（当日往返，同一天多次只算 1 天）。</p>
+    </div>
+    <p class="about">
+      中留服官方未公布统一的在港天数门槛，认证时会通过「移民局 12367」授权核验留学期间出入境记录；在港学习时间明显短于学制的，可能被要求补充材料或在认证书上加注。本页数字按你选择的目标估算，仅供规划参考，实际以中留服审核结果为准。
+    </p>
+  </section>
+
+  <!-- ========== 设置 ========== -->
+  <section id="view-settings" class="view">
+    <h2>设置</h2>
+    <div class="card field">
+      <label for="set-period-start">四年周期开始日期</label>
+      <input type="date" id="set-period-start">
+      <p class="hint">「四年周期」以这一天为起点（每 4 年自动进入下一周期）。不设置时，默认取最早一条记录的日期。</p>
+    </div>
+    <div class="card field">
+      <div class="switch-row"><span>打开应用时自动定位识别</span><input type="checkbox" class="sw" id="set-loc"></div>
+      <div class="switch-row"><span>识别到在香港时自动记录（无需确认）</span><input type="checkbox" class="sw" id="set-autorec"></div>
+      <p class="hint">定位只在打开本应用时读取一次，用于判断你是否在香港，并自动补充最近的口岸名称。需要 HTTPS 环境。「识别到在香港时自动记录」默认开启：检测到你在香港且今天未记录时直接记上（定位精度需优于 ±200 米，防止边境漂移误记）；精度不足时会退回一键确认。GPS 在深港边境附近可能偏到深圳一侧，识别不到时手动打卡即可。</p>
+    </div>
+    <div class="card field">
+      <div class="card-head">☁️ 云备份（自动上传）</div>
+      <input type="password" class="text-input" id="set-gist-token" placeholder="GitHub Token（ghp_ / github_pat_ 开头）" autocomplete="off">
+      <input type="text" class="text-input" id="set-gist-id" placeholder="Gist ID（首次保存后自动生成）" autocomplete="off">
+      <p class="hint" id="cloud-status">未配置。配置后，每次打卡会自动备份到你自己的 GitHub 秘密 Gist（仅自己可见），换手机或误删可一键恢复。</p>
+      <div class="loc-btns">
+        <button class="mini-btn primary" id="btn-cloud-save">保存并立即备份</button>
+        <button class="mini-btn" id="btn-cloud-backup">立即备份</button>
+      </div>
+      <div class="loc-btns">
+        <button class="mini-btn" id="btn-cloud-restore">从云端恢复</button>
+        <button class="mini-btn" id="btn-cloud-off">断开云备份</button>
+      </div>
+      <p class="hint">Token 创建方法见 README（只需 Gist 读写权限）。Token 只保存在本机；每次备份都保留历史版本，可随时回滚找回。恢复时与本机记录合并，同日期同口岸自动去重。</p>
+    </div>
+    <div class="card">
+      <button class="btn-ghost" id="btn-export-json" style="margin:0 0 10px">导出备份文件（JSON）</button>
+      <button class="btn-ghost" id="btn-export-csv" style="margin:0 0 10px">导出表格（CSV，可用 Excel 打开）</button>
+      <button class="btn-ghost" id="btn-copy-json" style="margin:0 0 10px">复制备份到剪贴板</button>
+      <button class="btn-ghost" id="btn-import" style="margin:0">从备份文件导入</button>
+      <input type="file" id="import-file" accept=".json,application/json" class="hidden">
+    </div>
+    <div class="card">
+      <button class="btn-danger" id="btn-clear">清空全部数据</button>
+    </div>
+    <p class="about">
+      香港入境打卡 · v1.5<br>
+      记录默认只保存在你手机本地；只有当你在上方配置了云备份时，数据才会自动上传到你自己的 GitHub 秘密 Gist。删除主屏幕图标、卸载或清除浏览器数据都会导致本机记录丢失，请配置云备份或定期导出备份。
+    </p>
+  </section>
+</main>
+
+<!-- ========== 底部导航 ========== -->
+<nav class="tabbar">
+  <button class="tab active" data-tab="home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>
+    首页
+  </button>
+  <button class="tab" data-tab="log">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="3.5" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="3.5" cy="18" r="1.3" fill="currentColor" stroke="none"/></svg>
+    记录
+  </button>
+  <button class="tab" data-tab="cert">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5 12 12l9-4.5L12 3z"/><path d="M6.5 9.8V15c0 1.7 2.5 3 5.5 3s5.5-1.3 5.5-3V9.8"/><path d="M21 7.5V13"/></svg>
+    留服
+  </button>
+  <button class="tab" data-tab="settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 9 19.35a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.65 15 1.7 1.7 0 0 0 3.09 14H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.65 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.65 1.7 1.7 0 0 0 10.03 3.09V3a2 2 0 1 1 4 0v.09A1.7 1.7 0 0 0 15 4.65a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.24.57.8.96 1.42 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1z"/></svg>
+    设置
+  </button>
+</nav>
+
+<!-- ========== 编辑弹层 ========== -->
+<div class="overlay hidden" id="modal">
+  <div class="sheet">
+    <h3 id="modal-title">编辑记录</h3>
+    <label>日期
+      <input type="date" id="edit-date">
+    </label>
+    <label>口岸 / 方式（可不填）
+      <input list="ports" id="edit-port" placeholder="如：罗湖 / 高铁西九龙 / 机场">
+      <datalist id="ports">
+        <option value="罗湖"></option><option value="福田"></option><option value="深圳湾"></option>
+        <option value="莲塘/香园围"></option><option value="文锦渡"></option><option value="港珠澳大桥"></option>
+        <option value="高铁西九龙"></option><option value="香港国际机场"></option><option value="港澳客轮码头"></option>
+        <option value="其他"></option>
+      </datalist>
+    </label>
+    <label>备注（可不填）
+      <input id="edit-note" placeholder="例如：出差 / 过境">
+    </label>
+    <div class="modal-actions">
+      <button class="danger-text" id="btn-del">删除此记录</button>
+      <span class="spacer"></span>
+      <button class="btn-ghost btn-cancel" id="btn-cancel">取消</button>
+      <button class="btn-primary btn-small" id="btn-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------------- 存取 ---------------- */
+  var LS_REC = 'hkEntry.records.v1';
+  var LS_SET = 'hkEntry.settings.v1';
+
+  function load(key, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) { return fallback; }
+  }
+  function saveRecords() {
+    localStorage.setItem(LS_REC, JSON.stringify(records));
+    scheduleAutoBackup();
+  }
+  function saveSettings() { localStorage.setItem(LS_SET, JSON.stringify(settings)); }
+
+  var records = load(LS_REC, []);
+  if (!Array.isArray(records)) records = [];
+  var settings = load(LS_SET, {});
+  if (typeof settings !== 'object' || !settings) settings = {};
+
+  var editingId = null;
+
+  /* ---------------- 工具 ---------------- */
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function isLeap(y) { return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0; }
+  function addYearsISO(iso, n) {
+    var y = parseInt(iso.slice(0, 4), 10) + n;
+    var rest = iso.slice(4);
+    if (rest === '-02-29' && !isLeap(y)) rest = '-02-28';
+    return y + rest;
+  }
+  function addDaysISO(iso, n) {
+    var d = new Date(parseInt(iso.slice(0, 4), 10), parseInt(iso.slice(5, 7), 10) - 1, parseInt(iso.slice(8, 10), 10) + n);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function toUTC(iso) {
+    return Date.UTC(parseInt(iso.slice(0, 4), 10), parseInt(iso.slice(5, 7), 10) - 1, parseInt(iso.slice(8, 10), 10));
+  }
+  function diffDays(a, b) { return Math.round((toUTC(a) - toUTC(b)) / 86400000); }
+  function isValidISO(s) { return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(toUTC(s)); }
+  function weekdayCN(iso) {
+    var d = new Date(parseInt(iso.slice(0, 4), 10), parseInt(iso.slice(5, 7), 10) - 1, parseInt(iso.slice(8, 10), 10));
+    return '周' + '日一二三四五六'.charAt(d.getDay());
+  }
+  function dotCN(iso) { return iso.slice(0, 4) + '.' + parseInt(iso.slice(5, 7), 10) + '.' + parseInt(iso.slice(8, 10), 10); }
+  function uid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function $(id) { return document.getElementById(id); }
+
+  var toastTimer = null;
+  function toast(msg) {
+    var el = $('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove('show'); }, 2200);
+  }
+
+  /* ---------------- 数据逻辑 ---------------- */
+  function sortRecords() {
+    records.sort(function (a, b) {
+      return a.date === b.date ? (a.id < b.id ? 1 : -1) : (a.date < b.date ? 1 : -1);
+    });
+  }
+
+  function periodStart() {
+    if (isValidISO(settings.periodStart)) return settings.periodStart;
+    var min = null;
+    for (var i = 0; i < records.length; i++) {
+      if (!min || records[i].date < min) min = records[i].date;
+    }
+    return min || todayISO();
+  }
+  // 以 4 年为一个周期，自动滚动到覆盖今天的那个周期
+  function currentPeriod() {
+    var start = periodStart();
+    var today = todayISO();
+    var s = start, e = addDaysISO(addYearsISO(start, 4), -1);
+    while (today > e) {
+      s = addYearsISO(s, 4);
+      e = addDaysISO(addYearsISO(s, 4), -1);
+    }
+    return { start: s, end: e };
+  }
+
+  function countBetween(from, to) {
+    var n = 0;
+    for (var i = 0; i < records.length; i++) {
+      if (records[i].type === 'out') continue;
+      if (records[i].date >= from && records[i].date <= to) n++;
+    }
+    return n;
+  }
+
+  // 累计在港天数（当日往返模式）：每个有记录的日期算 1 天，只统计 [fromISO, toISO] 区间
+  function computeHKDays(fromISO, toISO) {
+    var seen = {}, total = 0;
+    for (var i = 0; i < records.length; i++) {
+      var d = records[i].date;
+      if (d < fromISO || d > toISO || seen[d]) continue;
+      seen[d] = true;
+      total++;
+    }
+    return { days: total };
+  }
+
+  function addMonthsISO(iso, m) {
+    var y = parseInt(iso.slice(0, 4), 10), mo = parseInt(iso.slice(5, 7), 10) - 1 + m, d = parseInt(iso.slice(8, 10), 10);
+    y += Math.floor(mo / 12); mo = ((mo % 12) + 12) % 12;
+    var dim = [31, isLeap(y) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][mo];
+    if (d > dim) d = dim;
+    return y + '-' + pad(mo + 1) + '-' + pad(d);
+  }
+
+  function addRecord(date, port, note, type) {
+    records.push({ id: uid(), date: date, port: port || '', note: note || '', type: type === 'out' ? 'out' : 'in' });
+    sortRecords();
+    saveRecords();
+    renderAll();
+  }
+
+  /* ---------------- 渲染 ---------------- */
+  function renderHome() {
+    var today = todayISO();
+    var p = currentPeriod();
+    var daysTotal = diffDays(p.end, p.start) + 1;
+    var daysLeft = diffDays(p.end, today);
+
+    $('stat-period').textContent = countBetween(p.start, p.end);
+    $('hero-range').textContent = dotCN(p.start) + ' – ' + dotCN(p.end) + ' · 全部记录共 ' + records.length + ' 条';
+
+    var pct = Math.max(0, Math.min(100, Math.round((daysTotal - Math.max(0, daysLeft)) / daysTotal * 100)));
+    $('period-bar').style.width = pct + '%';
+    $('period-meta').textContent = daysLeft >= 0
+      ? '周期已进行 ' + pct + '% · 剩余 ' + daysLeft + ' 天'
+      : '本周期已结束 · 可在设置中调整开始日期进入新周期';
+
+    $('stat-month').textContent = countBetween(today.slice(0, 7) + '-01', today.slice(0, 7) + '-31');
+    $('stat-year').textContent = countBetween(today.slice(0, 4) + '-01-01', today.slice(0, 4) + '-12-31');
+    $('stat-roll').textContent = countBetween(addDaysISO(addYearsISO(today, -1), 1), today);
+
+    if (records.length) {
+      var last = records[0].date > today ? records[0].date : records[0].date; // 已按日期倒序
+      var d = diffDays(today, last);
+      $('stat-gap').textContent = d === 0 ? '今天' : (d > 0 ? d + ' 天' : d + ' 天');
+    } else {
+      $('stat-gap').textContent = '—';
+    }
+
+    // 提示卡片
+    var ua = navigator.userAgent || '';
+    var isIOS = /iphone|ipad|ipod/i.test(ua);
+    var standalone = window.navigator.standalone === true ||
+      (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+    if (/micromessenger/i.test(ua)) {
+      $('tip-wechat').classList.remove('hidden');
+    } else if (isIOS && !standalone) {
+      $('tip-install').classList.remove('hidden');
+    }
+    $('tip-backup').classList.remove('hidden');
+  }
+
+  function renderLog() {
+    var box = $('log-list');
+    if (!records.length) {
+      box.innerHTML = '<div class="empty">还没有入境记录<br>去「首页」记录第一次吧</div>';
+      return;
+    }
+    var html = '', lastMonth = '';
+    for (var i = 0; i < records.length; i++) {
+      var r = records[i];
+      var month = r.date.slice(0, 4) + '年' + parseInt(r.date.slice(5, 7), 10) + '月';
+      if (month !== lastMonth) {
+        html += '<div class="month-title">' + month + '（' + countBetween(r.date.slice(0, 7) + '-01', r.date.slice(0, 7) + '-31') + ' 次）</div>';
+        lastMonth = month;
+      }
+      html += '<div class="rec" data-id="' + r.id + '">' +
+        '<div><div class="date">' + parseInt(r.date.slice(5, 7), 10) + '月' + parseInt(r.date.slice(8, 10), 10) + '日</div>' +
+        '<div class="wd">' + weekdayCN(r.date) + '</div></div>' +
+        '<div class="info">' +
+        (r.port ? '<span class="port">' + esc(r.port) + '</span>' : '') +
+        (r.note ? '<span class="note">' + esc(r.note) + '</span>' : '') +
+        '</div><div class="chev">›</div></div>';
+    }
+    box.innerHTML = html;
+    var items = box.querySelectorAll('.rec');
+    for (var j = 0; j < items.length; j++) {
+      items[j].addEventListener('click', function () { openModal(this.getAttribute('data-id')); });
+    }
+  }
+
+  function renderSettings() {
+    $('set-period-start').value = settings.periodStart || '';
+    $('set-loc').checked = settings.autoLocate !== false;
+    $('set-autorec').checked = settings.autoRecord !== false;
+    $('set-gist-token').value = settings.gistToken || '';
+    $('set-gist-id').value = settings.gistId || '';
+    cloudStatusRender();
+    renderCert();
+  }
+
+  /* ---------------- 中留服 · 在港时长 ---------------- */
+  function certTotalDays() {
+    if (!isValidISO(settings.certStart) || !isValidISO(settings.certEnd)) return 0;
+    var d = diffDays(settings.certEnd, settings.certStart) + 1;
+    return d > 0 ? d : 0;
+  }
+  function certGoalDays() {
+    var g = settings.certGoal || { mode: 'days', v: 180 };
+    var total = certTotalDays();
+    if (!total) return 0;
+    if (g.mode === 'pct') return Math.ceil(total * g.v);
+    return g.v;
+  }
+  function setChipActive(containerId, matchFn) {
+    var chips = document.querySelectorAll('#' + containerId + ' .chip');
+    for (var i = 0; i < chips.length; i++) {
+      chips[i].classList.toggle('active', matchFn(chips[i]));
+    }
+  }
+  function renderCert() {
+    var cs = settings.certStart, ce = settings.certEnd;
+    $('cert-start').value = cs || '';
+    $('cert-end').value = ce || '';
+    setChipActive('cert-years', function (c) {
+      if (!cs || !ce) return false;
+      var n = parseFloat(c.getAttribute('data-years'));
+      var expect = (n === 1.5) ? addMonthsISO(cs, 18) : addYearsISO(cs, n);
+      return ce === expect;
+    });
+    var g = settings.certGoal || { mode: 'days', v: 180 };
+    setChipActive('cert-goals', function (c) {
+      return c.getAttribute('data-mode') === g.mode && parseFloat(c.getAttribute('data-v')) === g.v;
+    });
+
+    var total = certTotalDays();
+    var goal = certGoalDays();
+    $('cert-range').textContent = (cs && ce) ? dotCN(cs) + ' – ' + dotCN(ce) : '—';
+    $('cert-total').textContent = total ? total + ' 天' : '—';
+    $('cert-target').textContent = goal ? goal + ' 天' : '—';
+
+    if (!total || !goal) {
+      $('cert-actual').textContent = '0';
+      $('cert-elapsed').textContent = '—';
+      $('cert-required').textContent = '—';
+      $('cert-ahead').textContent = '—';
+      $('cert-remain').textContent = '—';
+      $('cert-bar').style.width = '0';
+      $('cert-status').textContent = '先在下方设置学制时间段';
+      return;
+    }
+    var today = todayISO();
+    var toEff = ce < today ? ce : today;
+    var hk = computeHKDays(cs, toEff);
+    $('cert-actual').textContent = hk.days;
+
+    var elapsed = diffDays(today, cs) + 1;
+    if (elapsed < 0) elapsed = 0;
+    if (elapsed > total) elapsed = total;
+    $('cert-elapsed').textContent = elapsed + ' / ' + total + ' 天';
+
+    var reqSoFar = Math.ceil(elapsed * goal / total);
+    $('cert-required').textContent = reqSoFar + ' 天';
+    var diff = hk.days - reqSoFar;
+    var ahead = $('cert-ahead');
+    ahead.textContent = diff >= 0 ? '领先 ' + diff + ' 天' : '落后 ' + (-diff) + ' 天';
+    ahead.style.color = diff >= 0 ? '#10b981' : '#ea580c';
+
+    var remain = goal - hk.days;
+    $('cert-remain').textContent = remain > 0 ? remain + ' 天' : '已达标 🎉';
+    $('cert-bar').style.width = Math.max(0, Math.min(100, hk.days / goal * 100)) + '%';
+    $('cert-status').textContent = '每次记录（当日往返）按 1 天在港计 · 同一天多次只算 1 天 · 目标进度 ' + Math.floor(hk.days / goal * 100) + '%';
+  }
+
+  function renderAll() { renderHome(); renderLog(); renderSettings(); }
+
+  /* ---------------- 弹层 ---------------- */
+  function openModal(id) {
+    var r = null;
+    for (var i = 0; i < records.length; i++) if (records[i].id === id) r = records[i];
+    if (!r) return;
+    editingId = id;
+    $('modal-title').textContent = '编辑记录';
+    $('edit-date').value = r.date;
+    $('edit-date').max = todayISO();
+    $('edit-port').value = r.port || '';
+    $('edit-note').value = r.note || '';
+    $('btn-del').classList.remove('hidden');
+    $('modal').classList.remove('hidden');
+  }
+  function closeModal() {
+    $('modal').classList.add('hidden');
+    editingId = null;
+  }
+
+  /* ---------------- 导出 / 导入 ---------------- */
+  function backupObject() {
+    return { app: 'hk-checkin', version: 1, exportedAt: new Date().toISOString(), records: records, settings: settings };
+  }
+  function download(name, text, mime) {
+    var blob = new Blob([text], { type: mime });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(a.href); }, 3000);
+  }
+  function copyText(text, okMsg) {
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); toast(okMsg); } catch (e) { toast('复制失败，请改用「导出备份文件」'); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { toast(okMsg); }, fallback);
+    } else fallback();
+  }
+
+  /* ---------------- 定位识别 ---------------- */
+  // 香港全域简化边界（含海域，按深圳河/边界线走向取点）。识别精度有限，
+  // 深港边境口岸附近 GPS 偏移可能导致漏判，属已知限制。
+  var HK_POLYGON = [
+    [22.13, 113.85], [22.22, 113.80], [22.29, 113.82], [22.33, 113.87], [22.36, 113.94],
+    [22.49, 113.90], [22.50, 113.95], [22.51, 114.00], [22.515, 114.035], [22.52, 114.07],
+    [22.527, 114.10], [22.533, 114.13], [22.54, 114.16], [22.547, 114.19], [22.552, 114.215],
+    [22.554, 114.25], [22.56, 114.29], [22.56, 114.43], [22.53, 114.44], [22.47, 114.35],
+    [22.36, 114.34], [22.28, 114.31], [22.22, 114.30], [22.16, 114.28], [22.15, 114.20],
+    [22.19, 114.10], [22.20, 114.03], [22.20, 113.97], [22.16, 113.90]
+  ];
+  // 主要口岸（香港一侧管制站坐标，用于 800 米内自动补口岸名）
+  var PORTS_GEO = [
+    ['罗湖', 22.5150, 114.0920],
+    ['福田(落马洲支线)', 22.5159, 114.0717],
+    ['深圳湾', 22.4966, 113.9456],
+    ['文锦渡', 22.5325, 114.1449],
+    ['莲塘/香园围', 22.5410, 114.1665],
+    ['沙头角', 22.5490, 114.2207],
+    ['港珠澳大桥', 22.3020, 113.9385],
+    ['香港国际机场', 22.3080, 113.9185],
+    ['高铁西九龙', 22.3030, 114.1680],
+    ['港澳客轮码头', 22.2905, 114.1501],
+    ['中港码头(尖沙咀)', 22.2966, 114.1699]
+  ];
+
+  function inHK(lat, lng) {
+    var inside = false;
+    for (var i = 0, j = HK_POLYGON.length - 1; i < HK_POLYGON.length; j = i++) {
+      var yi = HK_POLYGON[i][0], xi = HK_POLYGON[i][1];
+      var yj = HK_POLYGON[j][0], xj = HK_POLYGON[j][1];
+      if (((yi > lat) !== (yj > lat)) && (lng < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+    }
+    return inside;
+  }
+  function distM(lat1, lng1, lat2, lng2) {
+    var R = 6371000;
+    var a = Math.pow(Math.sin((lat2 - lat1) * Math.PI / 360), 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.pow(Math.sin((lng2 - lng1) * Math.PI / 360), 2);
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+  function nearestPort(lat, lng) {
+    var best = null, bd = 800; // 米，超过则视为无法确定口岸
+    for (var i = 0; i < PORTS_GEO.length; i++) {
+      var d = distM(lat, lng, PORTS_GEO[i][1], PORTS_GEO[i][2]);
+      if (d < bd) { bd = d; best = { name: PORTS_GEO[i][0], d: d }; }
+    }
+    return best;
+  }
+
+  var pendingPort = null;
+
+  function handlePosition(pos, opts) {
+    var lat = pos.coords.latitude, lng = pos.coords.longitude;
+    if (!inHK(lat, lng)) {
+      if (opts && opts.manual) toast('当前位置不在香港');
+      return;
+    }
+    var port = nearestPort(lat, lng);
+    var today = todayISO();
+    var hasToday = records.some(function (r) { return r.date === today; });
+    if (hasToday) {
+      if (opts && opts.manual) toast('今天已记录过入境');
+      return;
+    }
+    // 全自动模式（默认开启）：精度太差（边境附近易漂移）时退回一键确认
+    var acc = pos.coords.accuracy;
+    if (settings.autoRecord !== false && typeof acc === 'number' && acc <= 200) {
+      addRecord(today, port ? port.name : '');
+      toast('✓ 定位检测到你在香港，已自动记录入境' + (port ? ' · ' + port.name : ''));
+      return;
+    }
+    pendingPort = port ? port.name : '';
+    $('loc-title').textContent = '📍 检测到你在中国香港' +
+      (port ? '（距 ' + port.name + ' 约 ' + (Math.round(port.d / 100) * 100) + ' 米）' : '');
+    $('loc-detail').textContent = (settings.autoRecord !== false && typeof acc === 'number')
+      ? '定位精度不足（±' + Math.round(acc) + ' 米），确认无误后点击记录。'
+      : '今天还没有入境记录。';
+    $('btn-loc-record').textContent = '记录今日入境' + (port ? ' · ' + port.name : '');
+    $('loc-card').classList.remove('hidden');
+  }
+
+  var lastLocateAt = 0;
+  function locate(manual) {
+    lastLocateAt = Date.now();
+    if (!('geolocation' in navigator)) { if (manual) toast('此浏览器不支持定位'); return; }
+    if (!window.isSecureContext) { if (manual) toast('定位需要 HTTPS 环境，正式部署后可用'); return; }
+    if (manual) toast('正在定位…');
+    navigator.geolocation.getCurrentPosition(
+      function (pos) { handlePosition(pos, { manual: manual }); },
+      function (err) {
+        if (manual) toast(err.code === 1 ? '定位权限被拒绝，请在系统设置中允许' : '定位失败，请稍后再试');
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 5 * 60 * 1000 }
+    );
+  }
+
+  function runAutoLocate() {
+    if (settings.autoLocate === false) return;
+    if (Date.now() - lastLocateAt < 10 * 60 * 1000) return; // 10 分钟内不重复定位
+    // 首次使用时浏览器会弹出定位授权，允许一次后以后每次打开自动识别
+    locate(false);
+  }
+
+  /* ---------------- 云备份（GitHub Gist 自动上传） ---------------- */
+  function ghFetch(url, method, body) {
+    return fetch(url, {
+      method: method,
+      headers: { 'Authorization': 'Bearer ' + settings.gistToken, 'Accept': 'application/vnd.github+json' },
+      body: body ? JSON.stringify(body) : undefined
+    });
+  }
+  function cloudStatus(text, cls) {
+    var el = $('cloud-status');
+    el.textContent = text;
+    el.style.color = cls === 'err' ? 'var(--danger)' : (cls === 'ok' ? '#10b981' : '');
+  }
+  function cloudStatusRender() {
+    if (!settings.gistToken) {
+      cloudStatus('未配置。配置后，每次打卡会自动备份到你自己的 GitHub 秘密 Gist（仅自己可见），换手机或误删可一键恢复。');
+    } else if (settings.lastBackupError) {
+      cloudStatus('⚠ ' + settings.lastBackupError + '（下次打卡时会自动重试）', 'err');
+    } else if (settings.lastBackupAt) {
+      cloudStatus('✓ 上次备份：' + new Date(settings.lastBackupAt).toLocaleString(), 'ok');
+    }
+  }
+  function createGist() {
+    cloudStatus('正在创建云端备份…');
+    return ghFetch('https://api.github.com/gists', 'POST', {
+      description: '香港入境打卡自动备份（勿编辑）',
+      public: false,
+      files: { 'hk-entry-backup.json': { content: JSON.stringify(backupObject()) } }
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (r.ok && j.id) {
+          settings.gistId = j.id;
+          settings.lastBackupError = '';
+          saveSettings();
+          $('set-gist-id').value = j.id;
+          return true;
+        }
+        settings.lastBackupError = r.status === 401 ? 'Token 无效或没有 Gist 读写权限' : '创建 Gist 失败（' + r.status + '）' + (j.message || '');
+        saveSettings();
+        cloudStatus('⚠ ' + settings.lastBackupError, 'err');
+        return false;
+      });
+    }).catch(function () {
+      settings.lastBackupError = '网络无法访问 GitHub，请检查网络后重试';
+      saveSettings();
+      cloudStatus('⚠ ' + settings.lastBackupError, 'err');
+      return false;
+    });
+  }
+  function doBackup(auto) {
+    if (!settings.gistToken || !settings.gistId) {
+      if (!auto) toast('请先填写 Token 并保存');
+      return Promise.resolve(false);
+    }
+    if (!auto) cloudStatus('备份中…');
+    return ghFetch('https://api.github.com/gists/' + settings.gistId, 'PATCH', {
+      description: '香港入境打卡自动备份（勿编辑）',
+      files: { 'hk-entry-backup.json': { content: JSON.stringify(backupObject()) } }
+    }).then(function (r) {
+      if (r.ok) {
+        settings.lastBackupAt = new Date().toISOString();
+        settings.lastBackupError = '';
+        saveSettings();
+        cloudStatusRender();
+        if (!auto) toast('✓ 已备份到云端');
+        return true;
+      }
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        var msg = r.status === 401 ? 'Token 无效或已过期' : r.status === 404 ? '云端 Gist 不存在（可能被删除）' : '备份失败（' + r.status + '）' + (j.message || '');
+        settings.lastBackupError = msg;
+        saveSettings();
+        cloudStatusRender();
+        if (!auto) toast(msg);
+        return false;
+      });
+    }).catch(function () {
+      settings.lastBackupError = '网络无法访问 GitHub，请检查网络';
+      saveSettings();
+      cloudStatusRender();
+      if (!auto) toast(settings.lastBackupError);
+      return false;
+    });
+  }
+  var backupTimer = null;
+  function scheduleAutoBackup() {
+    if (!settings.gistToken || !settings.gistId) return;
+    clearTimeout(backupTimer);
+    backupTimer = setTimeout(function () { backupTimer = null; doBackup(true); }, 8000);
+  }
+  // 离开应用前把未上传的改动立即送出（尽力而为）
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'hidden' && backupTimer) {
+      clearTimeout(backupTimer);
+      backupTimer = null;
+      doBackup(true);
+    }
+  });
+  // 从后台回到前台时重新识别定位：App 留在后台期间过境，调回前台即自动记录
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') runAutoLocate();
+  });
+  // 合并一组记录进本机（导入 / 云端恢复共用）：按 id 或「日期+口岸」去重
+  function mergeData(list, extraSettings) {
+    var byId = {}, byKey = {};
+    for (var i = 0; i < records.length; i++) {
+      byId[records[i].id] = true;
+      byKey[records[i].date + '|' + (records[i].port || '')] = true;
+    }
+    var added = 0, skipped = 0;
+    for (var j = 0; j < list.length; j++) {
+      var r = list[j];
+      var date = isValidISO(r.date) ? r.date : null;
+      if (!date) { skipped++; continue; }
+      var key = date + '|' + String(r.port || '');
+      var id = r.id && !byId[r.id] ? String(r.id) : uid();
+      if (byId[id] || byKey[key]) { skipped++; continue; }
+      byId[id] = true; byKey[key] = true;
+      records.push({ id: id, date: date, port: String(r.port || ''), note: String(r.note || ''), type: r.type === 'out' ? 'out' : 'in' });
+      added++;
+    }
+    if (!settings.periodStart && extraSettings && isValidISO(extraSettings.periodStart)) {
+      settings.periodStart = extraSettings.periodStart;
+      saveSettings();
+    }
+    sortRecords();
+    saveRecords();
+    renderAll();
+    return { added: added, skipped: skipped };
+  }
+
+  /* ---------------- URL 参数自动打卡（配合 iOS 快捷指令） ---------------- */
+  function getParam(name) {
+    try { return new URLSearchParams(location.search).get(name); } catch (e) { return null; }
+  }
+  // 云备份一键配置：?gistsetup=<token>&gid=<gistId>（用于跨设备自动配置）
+  function handleGistSetup() {
+    var tok = getParam('gistsetup');
+    if (!tok) return;
+    settings.gistToken = tok.trim();
+    var gid = (getParam('gid') || '').trim();
+    if (gid) settings.gistId = gid;
+    saveSettings();
+    renderAll();
+    try { history.replaceState(null, '', location.pathname); } catch (e) { }
+    if (settings.gistId) {
+      cloudStatus('已自动配置云备份，正在验证…');
+      doBackup(false);
+    } else {
+      cloudStatus('正在用新 Token 创建云端备份…');
+      createGist().then(function (ok) { if (ok) doBackup(false); });
+    }
+  }
+  function handleAutoParams() {
+    if (getParam('auto') !== '1') return;
+    var date = getParam('date') || todayISO();
+    var port = (getParam('port') || '').trim();
+    var note = (getParam('note') || '').trim();
+    var ok = isValidISO(date) && date <= todayISO();
+    if (!ok) {
+      toast('自动打卡失败：日期无效');
+    } else {
+      var dup = records.some(function (r) { return r.date === date && (r.port || '') === port; });
+      if (dup) {
+        toast('入境记录已存在（' + date + (port ? ' · ' + port : '') + '），已跳过');
+      } else {
+        addRecord(date, port, note);
+        toast('✓ 已自动记录 ' + date + ' 入境' + (port ? ' · ' + port : ''));
+      }
+    }
+    try { history.replaceState(null, '', location.pathname); } catch (e) { }
+  }
+
+  /* ---------------- 事件绑定 ---------------- */
+  // 标签页
+  var tabs = document.querySelectorAll('.tab');
+  for (var t = 0; t < tabs.length; t++) {
+    tabs[t].addEventListener('click', function () {
+      var name = this.getAttribute('data-tab');
+      for (var k = 0; k < tabs.length; k++) tabs[k].classList.toggle('active', tabs[k] === this);
+      var views = document.querySelectorAll('.view');
+      for (var v = 0; v < views.length; v++) views[v].classList.remove('active');
+      $('view-' + name).classList.add('active');
+      window.scrollTo(0, 0);
+    });
+  }
+
+  // 记录今天
+  $('btn-today').addEventListener('click', function () {
+    var today = todayISO();
+    var has = false;
+    for (var i = 0; i < records.length; i++) if (records[i].date === today) has = true;
+    if (has && !confirm('今天已经记录过一次了。\n要再添加一条吗（如同一天多次往返）？')) return;
+    addRecord(today, '', '', 'in');
+    toast('✓ 已记录 ' + today + ' 入境');
+  });
+
+  // 补记
+  $('btn-toggle-backdate').addEventListener('click', function () {
+    var row = $('backdate-row');
+    row.classList.toggle('hidden');
+    if (!row.classList.contains('hidden')) {
+      $('backdate-input').max = todayISO();
+      $('backdate-input').value = todayISO();
+      $('backdate-input').focus();
+    }
+  });
+  $('btn-backdate-add').addEventListener('click', function () {
+    var d = $('backdate-input').value;
+    if (!isValidISO(d)) { toast('请选择日期'); return; }
+    if (d > todayISO()) { toast('不能记录未来的日期'); return; }
+    addRecord(d, '', '', 'in');
+    $('backdate-row').classList.add('hidden');
+    toast('✓ 已补记 ' + d + ' 入境');
+  });
+
+  // 定位识别
+  $('btn-locate').addEventListener('click', function () { locate(true); });
+  $('btn-loc-hide').addEventListener('click', function () {
+    $('loc-card').classList.add('hidden');
+    pendingPort = null;
+  });
+  $('btn-loc-record').addEventListener('click', function () {
+    addRecord(todayISO(), pendingPort);
+    pendingPort = null;
+    $('loc-card').classList.add('hidden');
+  });
+
+  // 云备份
+  $('btn-cloud-save').addEventListener('click', function () {
+    var t = $('set-gist-token').value.trim();
+    var g = $('set-gist-id').value.trim();
+    if (!t) { toast('请先填写 GitHub Token'); return; }
+    settings.gistToken = t;
+    if (g) settings.gistId = g;
+    saveSettings();
+    if (!settings.gistId) {
+      createGist().then(function (ok) { if (ok) doBackup(false); });
+    } else {
+      doBackup(false);
+    }
+  });
+  $('btn-cloud-backup').addEventListener('click', function () { doBackup(false); });
+  $('btn-cloud-restore').addEventListener('click', function () {
+    if (!settings.gistToken || !settings.gistId) { toast('请先配置 Token 并完成一次备份'); return; }
+    cloudStatus('正在读取云端备份…');
+    ghFetch('https://api.github.com/gists/' + settings.gistId, 'GET').then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (j) {
+        if (!r.ok) { cloudStatus('⚠ 读取失败（' + r.status + '）' + (j.message || ''), 'err'); return; }
+        var f = j.files && j.files['hk-entry-backup.json'];
+        if (!f || !f.content) { cloudStatus('⚠ 云端备份文件为空', 'err'); return; }
+        var data;
+        try { data = JSON.parse(f.content); } catch (e) { cloudStatus('⚠ 云端数据格式错误', 'err'); return; }
+        var list = Array.isArray(data) ? data : (data && data.records);
+        if (!Array.isArray(list)) { cloudStatus('⚠ 云端数据格式错误', 'err'); return; }
+        if (!confirm('云端备份包含 ' + list.length + ' 条记录。\n将合并进本机（同日期同口岸自动去重），确定继续吗？')) { cloudStatusRender(); return; }
+        var res = mergeData(list, data && data.settings);
+        cloudStatusRender();
+        toast('恢复完成：新增 ' + res.added + ' 条' + (res.skipped ? '，跳过 ' + res.skipped + ' 条' : ''));
+      });
+    }).catch(function () { cloudStatus('⚠ 网络无法访问 GitHub', 'err'); });
+  });
+  $('btn-cloud-off').addEventListener('click', function () {
+    if (!settings.gistToken) { toast('尚未配置云备份'); return; }
+    if (!confirm('断开云备份后，打卡将不再自动上传。\n已上传的云端数据会保留。确定断开吗？')) return;
+    delete settings.gistToken;
+    delete settings.gistId;
+    delete settings.lastBackupAt;
+    delete settings.lastBackupError;
+    saveSettings();
+    renderSettings();
+    toast('已断开云备份');
+  });
+
+  // 设置 - 定位开关
+  $('set-loc').addEventListener('change', function () {
+    settings.autoLocate = this.checked;
+    saveSettings();
+    if (this.checked) locate(true);
+  });
+  $('set-autorec').addEventListener('change', function () {
+    settings.autoRecord = this.checked;
+    saveSettings();
+    toast(this.checked ? '已开启全自动记录' : '已恢复一键确认');
+  });
+
+  // 中留服设置
+  $('cert-start').addEventListener('change', function () {
+    var v = this.value;
+    if (v && !isValidISO(v)) { toast('日期格式不正确'); return; }
+    settings.certStart = v || undefined;
+    saveSettings();
+    renderAll();
+  });
+  $('cert-end').addEventListener('change', function () {
+    var v = this.value;
+    if (v && !isValidISO(v)) { toast('日期格式不正确'); return; }
+    if (v && settings.certStart && v <= settings.certStart) { toast('结束日期需晚于开始日期'); return; }
+    settings.certEnd = v || undefined;
+    saveSettings();
+    renderAll();
+  });
+  var yearChips = document.querySelectorAll('#cert-years .chip');
+  for (var yc = 0; yc < yearChips.length; yc++) {
+    yearChips[yc].addEventListener('click', function () {
+      var cs = settings.certStart;
+      if (!isValidISO(cs)) { toast('请先设置学制开始日期'); return; }
+      var n = parseFloat(this.getAttribute('data-years'));
+      settings.certEnd = (n === 1.5) ? addMonthsISO(cs, 18) : addYearsISO(cs, n);
+      saveSettings();
+      renderAll();
+      toast('✓ 学制 ' + this.textContent + '，结束日期 ' + dotCN(settings.certEnd));
+    });
+  }
+  var goalChips = document.querySelectorAll('#cert-goals .chip');
+  for (var gc = 0; gc < goalChips.length; gc++) {
+    goalChips[gc].addEventListener('click', function () {
+      settings.certGoal = { mode: this.getAttribute('data-mode'), v: parseFloat(this.getAttribute('data-v')) };
+      saveSettings();
+      renderAll();
+    });
+  }
+  $('cert-custom-apply').addEventListener('click', function () {
+    var v = parseFloat($('cert-custom').value);
+    if (!v || v <= 0) { toast('请输入有效的目标数字'); return; }
+    var mode = $('cert-custom-mode').value;
+    if (mode === 'pct' && v > 100) { toast('百分比不能超过 100'); return; }
+    settings.certGoal = { mode: mode, v: mode === 'pct' ? v / 100 : v };
+    saveSettings();
+    renderAll();
+    toast('✓ 自定义目标已生效');
+  });
+
+  // 编辑弹层
+  $('btn-cancel').addEventListener('click', closeModal);
+  $('modal').addEventListener('click', function (e) { if (e.target === this) closeModal(); });
+  $('btn-save').addEventListener('click', function () {
+    var d = $('edit-date').value;
+    if (!isValidISO(d)) { toast('请选择日期'); return; }
+    if (d > todayISO()) { toast('不能记录未来的日期'); return; }
+    for (var i = 0; i < records.length; i++) {
+      if (records[i].id === editingId) {
+        records[i].date = d;
+        records[i].port = $('edit-port').value.trim();
+        records[i].note = $('edit-note').value.trim();
+        break;
+      }
+    }
+    sortRecords();
+    saveRecords();
+    renderAll();
+    closeModal();
+    toast('已保存');
+  });
+  $('btn-del').addEventListener('click', function () {
+    if (!confirm('确定删除这条记录吗？')) return;
+    records = records.filter(function (r) { return r.id !== editingId; });
+    saveRecords();
+    renderAll();
+    closeModal();
+    toast('已删除');
+  });
+
+  // 设置
+  $('set-period-start').addEventListener('change', function () {
+    var v = this.value;
+    if (v && !isValidISO(v)) { toast('日期格式不正确'); return; }
+    settings.periodStart = v || undefined;
+    saveSettings();
+    renderAll();
+    toast('周期设置已保存');
+  });
+
+  // 导出
+  $('btn-export-json').addEventListener('click', function () {
+    if (!records.length) { toast('还没有记录'); return; }
+    download('hk-entry-backup-' + todayISO() + '.json', JSON.stringify(backupObject(), null, 2), 'application/json');
+    toast('已导出 JSON 备份');
+  });
+  $('btn-export-csv').addEventListener('click', function () {
+    if (!records.length) { toast('还没有记录'); return; }
+    var lines = ['日期,星期,口岸/方式,备注'];
+    for (var i = records.length - 1; i >= 0; i--) {
+      var r = records[i];
+      var q = function (s) { s = String(s || ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+      lines.push([r.date, weekdayCN(r.date), q(r.port), q(r.note)].join(','));
+    }
+    download('hk-entry-' + todayISO() + '.csv', '\ufeff' + lines.join('\r\n'), 'text/csv');
+    toast('已导出 CSV');
+  });
+  $('btn-copy-json').addEventListener('click', function () {
+    if (!records.length) { toast('还没有记录'); return; }
+    copyText(JSON.stringify(backupObject()), '备份已复制到剪贴板');
+  });
+
+  // 导入（合并，按 id 去重）
+  $('btn-import').addEventListener('click', function () { $('import-file').click(); });
+  $('import-file').addEventListener('change', function () {
+    var file = this.files[0];
+    this.value = '';
+    if (!file) return;
+    if (!confirm('导入会将备份中的记录与当前记录合并（相同记录自动去重），\n确定继续吗？')) return;
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var data = JSON.parse(reader.result);
+        var list = Array.isArray(data) ? data : (data && data.records);
+        if (!Array.isArray(list)) throw new Error('bad');
+        var res = mergeData(list, data && data.settings);
+        toast('导入完成：新增 ' + res.added + ' 条' + (res.skipped ? '，跳过 ' + res.skipped + ' 条' : ''));
+      } catch (e) {
+        toast('文件格式不正确，导入失败');
+      }
+    };
+    reader.readAsText(file);
+  });
+
+  // 清空
+  $('btn-clear').addEventListener('click', function () {
+    if (!records.length) { toast('还没有记录'); return; }
+    if (!confirm('确定要清空全部 ' + records.length + ' 条记录吗？\n此操作不可恢复，建议先导出备份！')) return;
+    if (!confirm('再次确认：真的要清空全部记录吗？')) return;
+    records = [];
+    saveRecords();
+    renderAll();
+    toast('已清空全部数据');
+  });
+
+  /* ---------------- 启动 ---------------- */
+  sortRecords();
+  renderAll();
+  handleAutoParams();
+  handleGistSetup();
+  runAutoLocate();
+  // 上次备份失败时，启动后自动重试
+  if (settings.gistToken && settings.gistId && settings.lastBackupError) scheduleAutoBackup();
+
+  // 测试辅助钩子（不影响正常使用）
+  window.HKDebug = {
+    inHK: inHK,
+    nearestPort: nearestPort,
+    detect: function (lat, lng, acc) { handlePosition({ coords: { latitude: lat, longitude: lng, accuracy: acc } }, { manual: true }); }
+  };
+
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register('sw.js').catch(function () { });
+  }
+})();
+</script>
+</body>
+</html>
