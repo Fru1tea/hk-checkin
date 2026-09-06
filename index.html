@@ -1092,7 +1092,12 @@
   $('btn-cloud-save').addEventListener('click', function () {
     var t = $('set-gist-token').value.trim();
     var g = $('set-gist-id').value.trim();
-    if (!t) { toast('请先填写 GitHub Token'); return; }
+    // 防呆：从粘贴内容中自动提取纯 Token / Gist ID（允许带 "Token:" 等前缀或多余文字）
+    var mt = t.match(/gh[pousr]_[A-Za-z0-9]+/);
+    if (mt) t = mt[0];
+    var mg = g.match(/[0-9a-fA-F]{32}/);
+    if (mg) g = mg[0];
+    if (!t) { toast('请先填写 GitHub Token（ghp_ 或 github_pat_ 开头）'); return; }
     settings.gistToken = t;
     if (g) settings.gistId = g;
     saveSettings();
